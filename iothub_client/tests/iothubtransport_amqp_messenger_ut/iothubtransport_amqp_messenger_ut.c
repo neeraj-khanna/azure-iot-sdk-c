@@ -687,7 +687,10 @@ static MESSENGER_HANDLE create_and_start_messenger(MESSENGER_CONFIG* config)
 	set_expected_calls_for_messenger_start(config, handle);
 	(void)messenger_start(handle, TEST_SESSION_HANDLE);
 
-	saved_messagesender_create_on_message_sender_state_changed((void*)handle, MESSAGE_SENDER_STATE_OPEN, MESSAGE_SENDER_STATE_IDLE);
+        if (saved_messagesender_create_on_message_sender_state_changed != NULL)
+        {
+	    saved_messagesender_create_on_message_sender_state_changed((void*)handle, MESSAGE_SENDER_STATE_OPEN, MESSAGE_SENDER_STATE_IDLE);
+        }
 
 	return handle;
 }
@@ -1316,13 +1319,9 @@ TEST_FUNCTION(messenger_destroy_succeeds)
 {
 	// arrange
 	MESSENGER_CONFIG* config = get_messenger_config();
+	MESSENGER_HANDLE handle = create_and_start_messenger(config);
 
-	umock_c_reset_all_calls();
-	set_expected_calls_for_messenger_create(config);
-	MESSENGER_HANDLE handle = messenger_create(config);
-
-	set_expected_calls_for_messenger_start(config, handle);
-	(void)messenger_start(handle, TEST_SESSION_HANDLE);
+        ASSERT_IS_NOT_NULL(saved_messagesender_create_on_message_sender_state_changed);
 
 	saved_messagesender_create_on_message_sender_state_changed((void*)handle, MESSAGE_SENDER_STATE_OPEN, MESSAGE_SENDER_STATE_IDLE);
 
@@ -1506,6 +1505,8 @@ TEST_FUNCTION(messenger_state_on_message_receiver_state_changed_callback_ERROR)
 	messenger_do_work(handle);
 
 	// act
+        ASSERT_IS_NOT_NULL(saved_messagereceiver_create_on_message_receiver_state_changed);
+
 	saved_messagereceiver_create_on_message_receiver_state_changed(saved_messagereceiver_create_context, MESSAGE_RECEIVER_STATE_ERROR, MESSAGE_RECEIVER_STATE_OPEN);
 
 	// assert
@@ -1570,6 +1571,8 @@ TEST_FUNCTION(messenger_do_work_on_event_send_complete_OK)
 	set_expected_calls_for_on_message_send_complete();
 
 	// act
+        ASSERT_IS_NOT_NULL(saved_messagesender_send_on_message_send_complete);
+
 	saved_messagesender_send_on_message_send_complete(saved_messagesender_send_callback_context, MESSAGE_SEND_OK);
 
 	// assert
@@ -1598,6 +1601,8 @@ TEST_FUNCTION(messenger_do_work_on_event_send_complete_ERROR)
 	set_expected_calls_for_on_message_send_complete();
 
 	// act
+        ASSERT_IS_NOT_NULL(saved_messagesender_send_on_message_send_complete);
+
 	saved_messagesender_send_on_message_send_complete(saved_messagesender_send_callback_context, MESSAGE_SEND_ERROR);
 
 	// assert
@@ -1820,6 +1825,8 @@ TEST_FUNCTION(messenger_on_message_received_internal_callback_ACCEPTED)
 	set_expected_calls_for_on_message_received_internal_callback(MESSENGER_DISPOSITION_RESULT_ACCEPTED);
 
 	// act
+        ASSERT_IS_NOT_NULL(saved_messagereceiver_open_on_message_received);
+
 	AMQP_VALUE result = saved_messagereceiver_open_on_message_received(saved_messagereceiver_open_callback_context, TEST_MESSAGE_HANDLE);
 
 	// assert
@@ -1851,6 +1858,8 @@ TEST_FUNCTION(messenger_on_message_received_internal_callback_ABANDONED)
 	set_expected_calls_for_on_message_received_internal_callback(MESSENGER_DISPOSITION_RESULT_ABANDONED);
 
 	// act
+        ASSERT_IS_NOT_NULL(saved_messagereceiver_open_on_message_received);
+
 	AMQP_VALUE result = saved_messagereceiver_open_on_message_received(saved_messagereceiver_open_callback_context, TEST_MESSAGE_HANDLE);
 
 	// assert
@@ -1881,6 +1890,8 @@ TEST_FUNCTION(messenger_on_message_received_internal_callback_REJECTED)
 	set_expected_calls_for_on_message_received_internal_callback(MESSENGER_DISPOSITION_RESULT_REJECTED);
 
 	// act
+        ASSERT_IS_NOT_NULL(saved_messagereceiver_open_on_message_received);
+
 	AMQP_VALUE result = saved_messagereceiver_open_on_message_received(saved_messagereceiver_open_callback_context, TEST_MESSAGE_HANDLE);
 
 	// assert
@@ -1912,6 +1923,8 @@ TEST_FUNCTION(messenger_on_message_received_internal_callback_IoTHubMessage_Crea
 	STRICT_EXPECTED_CALL(messaging_delivery_rejected("Rejected due to failure reading AMQP message", "Failed reading AMQP message"));
 
 	// act
+        ASSERT_IS_NOT_NULL(saved_messagereceiver_open_on_message_received);
+
 	AMQP_VALUE result = saved_messagereceiver_open_on_message_received(saved_messagereceiver_open_callback_context, TEST_MESSAGE_HANDLE);
 
 	// assert
