@@ -34,7 +34,10 @@ static XIO_HANDLE getWebSocketsIOTransport(const char* fqdn)
 {
     WSIO_CONFIG ws_io_config;
     ws_io_config.hostname = fqdn;
-	ws_io_config.underlying_io = getTLSIOTransport(fqdn);
+	ws_io_config.port = 443;
+    ws_io_config.use_ssl = true;
+    ws_io_config.resource_name = "/$iothub/websocket";
+    ws_io_config.protocol = "AMQPWSB10";
 
     // Codes_SRS_IoTHubTransportAMQP_WS_09_002: [getWebSocketsIOTransport shall get `io_interface_description` using wsio_get_interface_description()]
     // Codes_SRS_IoTHubTransportAMQP_WS_09_003: [If `io_interface_description` is NULL getWebSocketsIOTransport shall return NULL.]
