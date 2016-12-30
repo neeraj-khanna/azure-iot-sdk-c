@@ -16,6 +16,8 @@
 #include "iothub_account.h"
 #include "iothubtest.h"
 
+#include "iothub_client_options.h"
+
 #include "azure_c_shared_utility/lock.h"
 
 #include "azure_c_shared_utility/platform.h"
@@ -59,7 +61,7 @@ static const char *METHOD_NAME = "MethodName";
 static const int METHOD_RESPONSE_SUCCESS = 201;
 static const int METHOD_RESPONSE_ERROR = 401;
 static const unsigned int TIMEOUT = 60;
-static const unsigned int IOTHUB_CONNECT_TIMEOUT_SEC = 10;
+static const unsigned int IOTHUB_CONNECT_TIMEOUT_SEC = 30;
 
 static void connection_status_callback(IOTHUB_CLIENT_CONNECTION_STATUS result, IOTHUB_CLIENT_CONNECTION_STATUS_REASON reason, void* userContextCallback)
 {
@@ -151,8 +153,13 @@ void test_device_method_with_string(IOTHUB_CLIENT_TRANSPORT_PROVIDER protocol, c
     result = IoTHubClient_SetConnectionStatusCallback(iotHubClientHandle, connection_status_callback, &conn_info);
     ASSERT_ARE_EQUAL_WITH_MSG(IOTHUB_CLIENT_RESULT, IOTHUB_CLIENT_OK, result, "Could not set connection Status Callback");
 
+    // Turn on Log 
+    bool trace = true;
+    (void)IoTHubClient_SetOption(iotHubClientHandle, OPTION_LOG_TRACE, &trace);
+
     result = IoTHubClient_SetDeviceMethodCallback(iotHubClientHandle, DeviceMethodCallback, (void*)payload);
     ASSERT_ARE_EQUAL_WITH_MSG(IOTHUB_CLIENT_RESULT, IOTHUB_CLIENT_OK, result, "Could not set the device method callback");
+
 
     bool continue_running = true;
     beginOperation = time(NULL);
