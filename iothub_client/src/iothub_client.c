@@ -39,6 +39,7 @@ typedef struct IOTHUB_CLIENT_INSTANCE_TAG
     IOTHUB_CLIENT_CONNECTION_STATUS_CALLBACK connection_status_callback;
     IOTHUB_CLIENT_INBOUND_DEVICE_METHOD_CALLBACK device_method_callback;
     void* devicetwin_user_context;
+    void* connection_status_user_context;
 } IOTHUB_CLIENT_INSTANCE;
 
 #ifndef DONT_USE_UPLOADTOBLOB
@@ -237,7 +238,6 @@ static void iothub_ll_connection_status_callback(IOTHUB_CLIENT_CONNECTION_STATUS
         {
             LogError("connection status callback vector push failed.");
         }
-        free(queue_context);
     }
 }
 
@@ -620,6 +620,8 @@ static IOTHUB_CLIENT_INSTANCE* create_iothub_instance(const IOTHUB_CLIENT_CONFIG
                     result->event_confirm_callback = NULL;
                     result->reported_state_callback = NULL;
                     result->devicetwin_user_context = NULL;
+                    result->connection_status_callback = NULL;
+                    result->connection_status_user_context = NULL;
                 }
             }
         }
@@ -787,6 +789,10 @@ void IoTHubClient_Destroy(IOTHUB_CLIENT_HANDLE iotHubClientHandle)
         if (iotHubClientInstance->devicetwin_user_context != NULL)
         {
             free(iotHubClientInstance->devicetwin_user_context);
+        }
+        if (iotHubClientInstance->connection_status_user_context != NULL)
+        {
+            free(iotHubClientInstance->connection_status_user_context);
         }
         free(iotHubClientInstance);
     }
@@ -987,14 +993,19 @@ IOTHUB_CLIENT_RESULT IoTHubClient_SetConnectionStatusCallback(IOTHUB_CLIENT_HAND
                 }
                 else
                 {
-                    IOTHUB_QUEUE_CONTEXT* queue_context = (IOTHUB_QUEUE_CONTEXT*)malloc(sizeof(IOTHUB_QUEUE_CONTEXT));
-                    if (queue_context == NULL)
+                    if (iotHubClientInstance->connection_status_user_context != NULL)
+                    {
+                        free(iotHubClientInstance->connection_status_user_context);
+                    }
+                    iotHubClientInstance->connection_status_user_context = (IOTHUB_QUEUE_CONTEXT*)malloc(sizeof(IOTHUB_QUEUE_CONTEXT));
+                    if (iotHubClientInstance->connection_status_user_context == NULL)
                     {
                         result = IOTHUB_CLIENT_ERROR;
                         LogError("Failed allocating QUEUE_CONTEXT");
                     }
                     else
                     {
+                        IOTHUB_QUEUE_CONTEXT* queue_context = iotHubClientInstance->connection_status_user_context;
                         queue_context->iotHubClientHandle = iotHubClientInstance;
                         queue_context->userContextCallback = userContextCallback;
 
